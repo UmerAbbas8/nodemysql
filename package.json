@@ -1,0 +1,16 @@
+{
+  "name": "nodejstask",
+  "version": "1.0.0",
+  "description": "nodeJs with mysql assignment task",
+  "main": "app.js",
+  "scripts": {
+    "start": "node ./",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "umerabbas8@gmail.com",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.17.1",
+    "mysql": "^2.18.1"
+  }
+}
