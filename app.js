@@ -1,67 +1,10 @@
 const express = require('express');
-const mysql = require('mysql');
+const DB = require('./db');
+const { validateFindTreasureRequest, validateBonusApi } = require('./middlewares');
 const bodyParser = require('body-parser');
-const joi = require('joi');
-
-// Create DB connection
-const db = mysql.createConnection({
-	host: 'localhost',
-	user: 'root',
-	password: '',
-	database: 'nodemysql'
-});
-
-//Create DB connection
-(async () => {
-	try {
-		await new Promise((resolve, reject) => {
-			db.connect((err) => {
-				return err ? reject(err) : resolve(true);
-			});
-		});
-	} catch (err) {
-		console.log('DB connection failed');
-	}
-})();
 
 const app = express();
 app.use(bodyParser.json());
-
-function run_query(sql, options = false) {
-	return new Promise((resolve) => {
-		//for options query like insert etc.
-		if (options) {
-			db.query(sql, options, (err, result) => {
-				if (err) {
-					resolve({
-						status: false,
-						error: err
-					});
-				} else {
-					resolve({
-						status: true,
-						result: result
-					});
-				}
-			});
-		} else {
-			//for regualr query without options
-			db.query(sql, (err, result) => {
-				if (err) {
-					resolve({
-						status: false,
-						error: err
-					});
-				} else {
-					resolve({
-						status: true,
-						result: result
-					});
-				}
-			});
-		}
-	});
-}
 
 app.get('/', (req, res) => {
 	res.send({ message: 'API works' });
@@ -77,7 +20,7 @@ app.get('/create_tables', async (req, res) => {
 	var create_treasures_table_sql =
 		'CREATE TABLE treasures(id INT UNSIGNED PRIMARY KEY, latitude DECIMAL(10, 8) NOT NULL, longitude DECIMAL(11, 8) NOT NULL, name VARCHAR(8))';
 
-	var query_resp = await run_query(create_treasures_table_sql);
+	var query_resp = await DB.run_query(create_treasures_table_sql);
 	if (query_resp.status) {
 		// console.log(query_resp.result);
 		tables_created.push('treasures');
@@ -106,7 +49,7 @@ app.get('/create_tables', async (req, res) => {
 
 		insert_sql = 'INSERT INTO treasures (id, latitude, longitude, name) VALUES ?';
 
-		let query_resp = await run_query(insert_sql, [ dataArr ]);
+		let query_resp = await DB.run_query(insert_sql, [ dataArr ]);
 		if (query_resp.status) {
 			console.log('treasures sample data inserted');
 		} else {
@@ -121,7 +64,7 @@ app.get('/create_tables', async (req, res) => {
 	var create_users_table_sql =
 		'CREATE TABLE users(id INT UNSIGNED PRIMARY KEY, name VARCHAR(30), age INT(3) UNSIGNED, password VARCHAR(20), email VARCHAR(50))';
 
-	var query_resp = await run_query(create_users_table_sql);
+	var query_resp = await DB.run_query(create_users_table_sql);
 	if (query_resp.status) {
 		// console.log(query_resp.result);
 		tables_created.push('users');
@@ -138,7 +81,7 @@ app.get('/create_tables', async (req, res) => {
 
 		insert_sql = 'INSERT INTO users (id, name, age, password, email) VALUES ?';
 
-		let query_resp = await run_query(insert_sql, [ dataArr ]);
+		let query_resp = await DB.run_query(insert_sql, [ dataArr ]);
 		if (query_resp.status) {
 			console.log('users sample data inserted');
 		} else {
@@ -152,7 +95,7 @@ app.get('/create_tables', async (req, res) => {
 
 	var create_money_values_table_sql = 'CREATE TABLE money_values(treasure_id INT UNSIGNED, amt INT(2))';
 
-	var query_resp = await run_query(create_money_values_table_sql);
+	var query_resp = await DB.run_query(create_money_values_table_sql);
 	if (query_resp.status) {
 		// console.log(query_resp.result);
 		tables_created.push('money_values');
@@ -188,7 +131,7 @@ app.get('/create_tables', async (req, res) => {
 
 		insert_sql = 'INSERT INTO money_values (treasure_id, amt) VALUES ?';
 
-		let query_resp = await run_query(insert_sql, [ dataArr ]);
+		let query_resp = await DB.run_query(insert_sql, [ dataArr ]);
 		if (query_resp.status) {
 			console.log('money_values sample data inserted');
 		} else {
@@ -208,52 +151,7 @@ app.get('/create_tables', async (req, res) => {
 	});
 });
 
-function isLatitude(lat) {
-	return isFinite(lat) && Math.abs(lat) <= 90;
-}
-
-function isLongitude(lng) {
-	return isFinite(lng) && Math.abs(lng) <= 180;
-}
-
 // Find treasures
-async function validateFindTreasureRequest(req, res, next) {
-	const findTreasureSchema = joi.object({
-		latitude: joi
-			.number()
-			.custom((value, helper) => {
-				if (isLatitude(value)) {
-					return true;
-				} else {
-					return helper.message('Must be a valid latitude');
-				}
-			})
-			.required(),
-		longitude: joi
-			.number()
-			.custom((value, helper) => {
-				if (isLongitude(value)) {
-					return true;
-				} else {
-					return helper.message('Must be a valid longitude');
-				}
-			})
-			.required(),
-		distance: joi.number().integer().valid(1, 10).required(),
-		prize_value: joi.number().integer().min(10).max(30)
-	});
-
-	const value = findTreasureSchema.validate(req.body);
-	if (value.error) {
-		res.json({
-			status: false,
-			message: value.error.details[0].message
-		});
-	} else {
-		next();
-	}
-}
-
 app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
 	let lat = req.body.latitude;
 	let long = req.body.longitude;
@@ -287,7 +185,7 @@ app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
 
 	// console.log(find_treasures_sql);
 
-	var query_resp = await run_query(find_treasures_sql);
+	var query_resp = await DB.run_query(find_treasures_sql);
 	if (query_resp.status) {
 		res.send({
 			status: true,
@@ -303,40 +201,6 @@ app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
 // End Find treasures
 
 /* ********* Bonus API (find biggest treasure near me) ************** */
-async function validateBonusApi(req, res, next) {
-	const findTreasureSchema = joi.object({
-		latitude: joi
-			.number()
-			.custom((value, helper) => {
-				if (isLatitude(value)) {
-					return true;
-				} else {
-					return helper.message('Must be a valid latitude');
-				}
-			})
-			.required(),
-		longitude: joi
-			.number()
-			.custom((value, helper) => {
-				if (isLongitude(value)) {
-					return true;
-				} else {
-					return helper.message('Must be a valid longitude');
-				}
-			})
-			.required()
-	});
-
-	const value = findTreasureSchema.validate(req.body);
-	if (value.error) {
-		res.send({
-			status: false,
-			message: value.error.details[0].message
-		});
-	} else {
-		next();
-	}
-}
 app.post('/find_biggest_treasure_near_me', validateBonusApi, async (req, res) => {
 	let lat = req.body.latitude;
 	let long = req.body.longitude;
@@ -352,7 +216,7 @@ app.post('/find_biggest_treasure_near_me', validateBonusApi, async (req, res) =>
 
 	// console.log(find_treasures_sql);
 
-	var query_resp = await run_query(find_treasures_sql);
+	var query_resp = await DB.run_query(find_treasures_sql);
 	if (query_resp.status) {
 		res.send({
 			status: true,
@@ -365,7 +229,6 @@ app.post('/find_biggest_treasure_near_me', validateBonusApi, async (req, res) =>
 		});
 	}
 });
-
 /* ********* End Bonus API ((find biggest treasure near me)) ********** */
 
 module.exports = app;
