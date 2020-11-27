@@ -3,13 +3,34 @@ GET http://localhost:3000/ HTTP/1.1
 ###
 GET http://localhost:3000/create_tables
 
-###
+### Node API A
 POST http://localhost:3000/find_treasure
 Content-Type: application/json
 
 {
     "latitude": "1.3273451",
     "longitude": "103.8756757",
-    "distance": "1"
+    "distance": "10"
+}
+
+### Node API B
+POST http://localhost:3000/find_treasure
+Content-Type: application/json
+
+{
+    "latitude": "1.3273451",
+    "longitude": "103.8756757",
+    "distance": "1",
+    "prize_value": "10"
+}
+
+
+### Bonus API
+POST http://localhost:3000/find_biggest_treasure_near_me
+Content-Type: application/json
+
+{
+    "latitude": "1.33125924",
+    "longitude": "103.8980486"
 }
 

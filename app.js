@@ -259,16 +259,34 @@ app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
 	let lat = req.body.latitude;
 	let long = req.body.longitude;
 	let dist = req.body.distance;
+	let prize_value =
+		typeof req.body.prize_value != 'undefined' && req.body.prize_value != '' ? req.body.prize_value : '';
 
-	var find_treasures_sql =
-		'SELECT * FROM( SELECT *,(((acos(sin((' +
-		lat +
-		'*pi()/180)) * sin((latitude*pi()/180))+cos((' +
-		lat +
-		'*pi()/180)) * cos((latitude*pi()/180)) * cos(((' +
-		long +
-		' - longitude)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance FROM treasures) t WHERE distance <= ' +
-		dist;
+	if (prize_value != '') {
+		var find_treasures_sql =
+			'SELECT *, MIN(mv.amt) FROM( SELECT *,(((acos(sin((' +
+			lat +
+			'*pi()/180)) * sin((latitude*pi()/180))+cos((' +
+			lat +
+			'*pi()/180)) * cos((latitude*pi()/180)) * cos(((' +
+			long +
+			' - longitude)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance FROM treasures) t JOIN money_values as mv WHERE (mv.treasure_id = t.id AND mv.amt >= ' +
+			prize_value +
+			') AND distance <= ' +
+			dist;
+	} else {
+		var find_treasures_sql =
+			'SELECT * FROM( SELECT *,(((acos(sin((' +
+			lat +
+			'*pi()/180)) * sin((latitude*pi()/180))+cos((' +
+			lat +
+			'*pi()/180)) * cos((latitude*pi()/180)) * cos(((' +
+			long +
+			' - longitude)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance FROM treasures) t WHERE distance <= ' +
+			dist;
+	}
+
+	// console.log(find_treasures_sql);
 
 	var query_resp = await run_query(find_treasures_sql);
 	if (query_resp.status) {
@@ -284,5 +302,71 @@ app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
 	}
 });
 // End Find treasures
+
+/* ********* Bonus API (find biggest treasure near me) ************** */
+async function validateBonusApi(req, res, next) {
+	const findTreasureSchema = joi.object({
+		latitude: joi
+			.number()
+			.custom((value, helper) => {
+				if (isLatitude(value)) {
+					return true;
+				} else {
+					return helper.message('Must be a valid latitude');
+				}
+			})
+			.required(),
+		longitude: joi
+			.number()
+			.custom((value, helper) => {
+				if (isLongitude(value)) {
+					return true;
+				} else {
+					return helper.message('Must be a valid longitude');
+				}
+			})
+			.required()
+	});
+
+	const value = findTreasureSchema.validate(req.body);
+	if (value.error) {
+		res.json({
+			status: false,
+			message: value.error.details[0].message
+		});
+	} else {
+		next();
+	}
+}
+app.post('/find_biggest_treasure_near_me', validateBonusApi, async (req, res) => {
+	let lat = req.body.latitude;
+	let long = req.body.longitude;
+
+	var find_treasures_sql =
+		'SELECT *, MAX(mv.amt), MIN(distance) FROM( SELECT *,(((acos(sin((' +
+		lat +
+		'*pi()/180)) * sin((latitude*pi()/180))+cos((' +
+		lat +
+		'*pi()/180)) * cos((latitude*pi()/180)) * cos(((' +
+		long +
+		' - longitude)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance FROM treasures) t1 JOIN money_values as mv WHERE mv.treasure_id = t1.id';
+
+	// console.log(find_treasures_sql);
+
+	var query_resp = await run_query(find_treasures_sql);
+	if (query_resp.status) {
+		res.send({
+			status: true,
+			data: query_resp.result
+		});
+	} else {
+		res.send({
+			status: false,
+			message: query_resp.error
+		});
+	}
+});
+
+/* ********* End Bonus API ((find biggest treasure near me)) ********** */
 
 module.exports = app;
