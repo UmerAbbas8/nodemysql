@@ -50,4 +50,3 @@ Although this porblem can be solved by ASCII values too, but if we use ASCII val
 
 
 
-npm install --save-dev jest
