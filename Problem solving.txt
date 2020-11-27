@@ -19,6 +19,7 @@ Question:
 a/ Write an algorithm to solve the above issue. Please consider the complexity of the algorithm.
 
 //******************** CODE ***********************//
+$alphabet_str = "abcdefghijklmnopqrstuvwxyz";
 $alphabet_arr = str_split($alphabet_str);
 $alphabet_arr_count = count($alphabet_arr);
 
