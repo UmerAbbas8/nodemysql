@@ -64,8 +64,7 @@ function run_query(sql, options = false) {
 }
 
 app.get('/', (req, res) => {
-	console.log('testing root path');
-	res.send();
+	res.send({ message: 'API works' });
 });
 
 // Create DB
@@ -330,7 +329,7 @@ async function validateBonusApi(req, res, next) {
 
 	const value = findTreasureSchema.validate(req.body);
 	if (value.error) {
-		res.json({
+		res.send({
 			status: false,
 			message: value.error.details[0].message
 		});
