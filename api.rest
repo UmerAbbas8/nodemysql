@@ -1,0 +1,14 @@
+GET http://localhost:3000/ HTTP/1.1
+
+###
+POST http://localhost:3000/find_treasure
+Content-Type: application/json
+
+{
+    "latitude": "1.3273451",
+    "longitude": "103.8756757",
+    "distance": "1"
+}
+
+###
+GET http://localhost:3000/create_tables
