@@ -1,6 +1,9 @@
 GET http://localhost:3000/ HTTP/1.1
 
 ###
+GET http://localhost:3000/create_tables
+
+###
 POST http://localhost:3000/find_treasure
 Content-Type: application/json
 
@@ -10,5 +13,3 @@ Content-Type: application/json
     "distance": "1"
 }
 
-###
-GET http://localhost:3000/create_tables

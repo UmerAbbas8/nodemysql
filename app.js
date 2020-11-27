@@ -254,19 +254,35 @@ async function validateFindTreasureRequest(req, res, next) {
 		next();
 	}
 }
+
 app.post('/find_treasure', validateFindTreasureRequest, async (req, res) => {
-	let latitude = req.latitude;
-	let longitude = req.longitude;
-	let distance = req.distance;
+	let lat = req.body.latitude;
+	let long = req.body.longitude;
+	let dist = req.body.distance;
 
-	// var find_treasures_sql = '';
+	var find_treasures_sql =
+		'SELECT * FROM( SELECT *,(((acos(sin((' +
+		lat +
+		'*pi()/180)) * sin((latitude*pi()/180))+cos((' +
+		lat +
+		'*pi()/180)) * cos((latitude*pi()/180)) * cos(((' +
+		long +
+		' - longitude)*pi()/180))))*180/pi())*60*1.1515*1.609344) as distance FROM treasures) t WHERE distance <= ' +
+		dist;
 
-	// var query_resp = await run_query(find_treasures_sql);
-	// if(query_resp.status){
-
-	// }
-
-	res.send();
+	var query_resp = await run_query(find_treasures_sql);
+	if (query_resp.status) {
+		res.send({
+			status: true,
+			data: query_resp.result
+		});
+	} else {
+		res.send({
+			status: false,
+			message: query_resp.error
+		});
+	}
 });
+// End Find treasures
 
 module.exports = app;
