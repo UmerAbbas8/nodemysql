@@ -9,7 +9,7 @@ npm install
 ```
 ## Setup DB 
 
-1. Create a DB with name nodemysql.
+1. Create a DB with name `nodemysql`
 2. Set your db connection in db.js
 
 ## Run project
@@ -44,7 +44,7 @@ Content-Type: application/json
 ```javascript
 {
   "status" : bool,
-  "message"    : string,
+  "message" : string,
   "data" : any
 }
 ```
