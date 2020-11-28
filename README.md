@@ -26,7 +26,7 @@ GET http://localhost:3000/create_tables
 
 ## APIs Created
 
-#To Find Treasure
+1. To find treasure
 ```http
 POST http://localhost:3000/find_treasure
 Content-Type: application/json
@@ -39,7 +39,29 @@ Content-Type: application/json
 | `distance` | `number` | **Required**. Distance can only contain `1` or `10` (km) |
 | `prize_value` | `number (integer)` | **Optional**. Prize value is >= `10` and <= `30` ($) |
 
-## Responses
+## Response
+
+```javascript
+{
+  "status" : bool,
+  "message" : string,
+  "data" : any
+}
+```
+
+
+2. Bonus API to find biggest treasure near me (specified location)
+```http
+POST http://localhost:3000/find_biggest_treasure_near_me
+Content-Type: application/json
+```
+
+| Parameter | Type | Description |
+| :--- | :--- | :--- |
+| `latitude` | `number` | **Required**. A valid latitude |
+| `longitude` | `number` | **Required**. A valid longitude |
+
+## Response
 
 ```javascript
 {
@@ -58,7 +80,7 @@ The `data` attribute can contain an array or an object of result.
 
 ## Status Codes
 
-Gophish returns the following status codes in its API:
+Returns the following status codes in API:
 
 | Status Code | Description |
 | :--- | :--- |
