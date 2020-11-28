@@ -10,7 +10,7 @@ app.get('/', (req, res) => {
 	res.send({ message: 'API works' });
 });
 
-// Create DB
+// Create tables and impoort sample data in DB
 app.get('/create_tables', async (req, res) => {
 	console.log(' create_tables ');
 
